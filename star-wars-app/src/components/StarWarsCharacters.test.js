@@ -1,32 +1,36 @@
 import React from 'react'
-import { render, fireEvent, wait } from '@testing-library/react'
-import { getData as mockGetData } from '../api'
-import StarWarsCharacters from './StarWarsCharacters'
+import * as rtl from '@testing-library/react'
+import '@testing-library/jest-dom/extend-expect'
+import axios from 'axios'
 
-jest.mock('../api')
+import App from '../App'
 
-test('renders character data, next button and previous button', async () => {
-    mockGetData.mockResolvedValueOnce({
-        results: [{
-            name: 'Luke Skywalker',
-            height: '172',
-            mass: '77',
-            hari_color: 'blond',
-            skin_color: 'fair'
-        }],
-        next: "abcde",
-        previous: "abcd"
-    })
-
-    const { getByText } = render(<StarWarsCharacters />)
-
-    const nextButton = getByText(/next/i)
-    const previousButton = getByText(/previous/i)
-
-    fireEvent.click(nextButton)
-    fireEvent.click(previousButton)
-
-    expect(mockGetData).toHaveBeenCalledTimes(1)
-
-    await wait(() => expect(getByText(/luke/i)))
+jest.mock('axios', () => {
+    return {
+        get: jest.fn(() => Promise.resolve({
+            data: {
+                results: ['mike', '6ft']
+            }
+        }))
+    }
 })
+
+
+test('made an api call', async () => {
+    const wrapper = rtl.render(<App />)
+    await wrapper.getAllByText(/next/i)
+    expect(axios.get).toHaveBeenCalled()
+})
+
+test('does next function work', async () => {
+    const { getByTestId } = rtl.render(<App />)
+    await rtl.fireEvent.click(getByTestId('next'))
+    expect(axios.get).toHaveBeenCalled()
+})
+
+test('does logo render', () => {
+    const { getByTestId } = rtl.render(<App />)
+    getByTestId('next')
+    getByTestId('prev')
+})
+
