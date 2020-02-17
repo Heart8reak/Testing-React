@@ -4,27 +4,37 @@ import '@testing-library/jest-dom/extend-expect'
 import axios from 'axios'
 
 import App from '../App'
+import { findByText } from '@testing-library/react'
 
 jest.mock('axios', () => {
     return {
         get: jest.fn(() => Promise.resolve({
             data: {
-                results: ['mike', '6ft']
+                results: [{
+                    url: 'testing123',
+                    name: 'Mike'
+                }]
             }
         }))
     }
 })
 
 
-test('made an api call', async () => {
+test('made an api call', () => {
     const wrapper = rtl.render(<App />)
-    await wrapper.getAllByText(/next/i)
+    wrapper.getAllByText(/next/i)
     expect(axios.get).toHaveBeenCalled()
 })
 
-test('does next function work', async () => {
+test('render api results', async () => {
+    const { findByText } = rtl.render(<App />)
+    const res = await findByText(/mike/i)
+    expect(res).toBeVisible()
+})
+
+test('does next function work', () => {
     const { getByTestId } = rtl.render(<App />)
-    await rtl.fireEvent.click(getByTestId('next'))
+    rtl.fireEvent.click(getByTestId('next'))
     expect(axios.get).toHaveBeenCalled()
 })
 
